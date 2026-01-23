@@ -1,5 +1,7 @@
 # DemoShip
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/andysantamaria0/demoship)
+
 Turn GitHub pull requests into shareable demo videos with AI narration in under 2 minutes.
 
 ## Features
