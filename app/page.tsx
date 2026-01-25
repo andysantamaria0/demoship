@@ -17,8 +17,8 @@ export default async function HomePage() {
       <section className="hero-gradient py-20 md:py-32">
         <div className="container mx-auto px-4 flex flex-col items-center text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Turn Pull Requests into
-            <span className="gradient-text"> Stunning Demo Videos</span>
+            Make building in public easy with
+            <span className="gradient-text"> DemoShip</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
             {design.brand.description}
