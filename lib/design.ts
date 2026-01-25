@@ -13,7 +13,7 @@ export const design = {
     name: "DemoShip",
     tagline: "Turn Pull Requests into stunning demo videos",
     description:
-      "Paste a PR URL and watch as AI analyzes your changes, generates a script, and produces a polished video with voice narration — all automatically.",
+      "Paste a PR URL and AI analyzes your code, captures UI screenshots, generates a script, and produces a polished video with professional narration — all in minutes.",
   },
 
   // Colors (semantic names - actual values in globals.css)

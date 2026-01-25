@@ -77,32 +77,32 @@ export default async function HomePage() {
             <FeatureCard
               icon={<BrainIcon />}
               title="AI-Powered Analysis"
-              description="Claude reads your diffs, commits, and PR description to generate clear, concise summaries"
+              description="Claude reads your diffs, commits, and PR description to craft a compelling narrative"
             />
             <FeatureCard
               icon={<VoiceIcon />}
               title="Professional Narration"
-              description="ElevenLabs voice synthesis creates natural-sounding narration for your demos"
+              description="Natural-sounding voice narration that always plays to completion, never cut off"
+            />
+            <FeatureCard
+              icon={<ImageIcon />}
+              title="Auto-Capture Screenshots"
+              description="Automatically captures UI from preview deployments, or extracts from Vercel/Chromatic comments"
+            />
+            <FeatureCard
+              icon={<VideoIcon />}
+              title="Screen Recordings"
+              description="Upload screen recordings to showcase interactive features and user flows"
             />
             <FeatureCard
               icon={<LayersIcon />}
               title="Multi-PR Support"
-              description="Combine up to 10 PRs from the same repo into a single unified video"
+              description="Combine up to 10 PRs from the same repo into a single unified demo video"
             />
             <FeatureCard
-              icon={<ImageIcon />}
-              title="UI Screenshots"
-              description="Automatically extracts preview images from Vercel, Chromatic, and Percy bot comments"
-            />
-            <FeatureCard
-              icon={<CodeIcon />}
-              title="Code Visualization"
-              description="Beautiful animated diff views with syntax highlighting"
-            />
-            <FeatureCard
-              icon={<ShareIcon />}
-              title="One-Click Sharing"
-              description="Get a shareable link to send to teammates, stakeholders, or post on social media"
+              icon={<ApiIcon />}
+              title="CI/CD Integration"
+              description="Public API and GitHub Actions support for automated video generation on every PR"
             />
           </div>
         </div>
@@ -193,22 +193,6 @@ function VoiceIcon() {
   );
 }
 
-function ShareIcon() {
-  return (
-    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-    </svg>
-  );
-}
-
-function CodeIcon() {
-  return (
-    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-    </svg>
-  );
-}
-
 function LayersIcon() {
   return (
     <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,6 +205,22 @@ function ImageIcon() {
   return (
     <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function VideoIcon() {
+  return (
+    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function ApiIcon() {
+  return (
+    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   );
 }
