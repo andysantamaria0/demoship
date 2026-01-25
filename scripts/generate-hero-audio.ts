@@ -20,7 +20,11 @@ async function main() {
   console.log("");
 
   try {
+    // Lily - British female voice, velvety and warm
+    const LILY_VOICE_ID = "pFZP5JQG7iQjIQuC4Bku";
+
     const result = await generateVoice(HERO_SCRIPT, {
+      voiceId: LILY_VOICE_ID,
       stability: 0.6,
       similarityBoost: 0.8,
     });
