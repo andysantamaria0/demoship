@@ -1,0 +1,3 @@
+[submodule "remotion"]
+	path = remotion
+	url = https://github.com/andysantamaria0/demoship-remotion-f.git
