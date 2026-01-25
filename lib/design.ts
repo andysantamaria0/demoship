@@ -32,13 +32,13 @@ export const design = {
     error: "#ef4444",
     info: "#3b82f6",
 
-    // Change type badges
+    // Change type badges - Vialoure palette
     changeTypes: {
-      feature: { bg: "#dbeafe", text: "#1d4ed8", label: "Feature" },
-      bugfix: { bg: "#fef3c7", text: "#d97706", label: "Bug Fix" },
-      refactor: { bg: "#f3e8ff", text: "#7c3aed", label: "Refactor" },
-      docs: { bg: "#d1fae5", text: "#059669", label: "Documentation" },
-      other: { bg: "#f3f4f6", text: "#6b7280", label: "Other" },
+      feature: { bg: "#E8E4F9", text: "#4A35D7", label: "Feature" },      // Royal Blue tones
+      bugfix: { bg: "#FFE8E6", text: "#E85A50", label: "Bug Fix" },       // Coral tones
+      refactor: { bg: "#F5EBE0", text: "#9A7B5B", label: "Refactor" },    // Hide tones
+      docs: { bg: "#F4F4ED", text: "#2F2F2F", label: "Documentation" },   // Ivory/Charcoal
+      other: { bg: "#F4F4ED", text: "#5A5A5A", label: "Other" },
     },
 
     // Status indicators
@@ -56,11 +56,11 @@ export const design = {
     },
   },
 
-  // Typography
+  // Typography - Vialoure style
   fonts: {
     // Font families (loaded in layout.tsx)
-    heading: "var(--font-geist-sans)",
-    body: "var(--font-geist-sans)",
+    heading: "var(--font-playfair)",  // Playfair Display for headlines
+    body: "var(--font-karla)",        // Karla for body text
     mono: "var(--font-geist-mono)",
   },
 

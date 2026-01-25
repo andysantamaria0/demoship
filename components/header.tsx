@@ -27,7 +27,7 @@ export function Header({ user }: HeaderProps) {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <LogoIcon className="w-8 h-8" />
-          <span className="font-semibold text-lg">{design.brand.name}</span>
+          <span className="font-semibold text-xl" style={{ fontFamily: 'var(--font-playfair)' }}>{design.brand.name}</span>
         </Link>
 
         <nav className="flex items-center gap-4">
@@ -67,27 +67,29 @@ function LogoIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Ship icon */}
+      {/* Ship hull - Royal Blue */}
       <rect
         x="4"
         y="18"
         width="24"
         height="8"
         rx="2"
-        className="fill-primary"
+        fill="#4A35D7"
       />
+      {/* Ship sail/structure - Royal Blue */}
       <path
         d="M8 18V12L16 6L24 12V18"
-        className="stroke-primary"
+        stroke="#4A35D7"
         strokeWidth="2"
         fill="none"
       />
-      <circle cx="16" cy="13" r="2" className="fill-primary" />
-      {/* Play button overlay */}
+      {/* Center accent - Hide (tan) */}
+      <circle cx="16" cy="13" r="2.5" fill="#DFB288" />
+      {/* Play button detail - Coral accent */}
       <path
-        d="M14 22L20 22"
-        className="stroke-primary-foreground"
-        strokeWidth="2"
+        d="M13 22L19 22"
+        stroke="#FF7D73"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
     </svg>
