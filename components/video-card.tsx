@@ -53,7 +53,7 @@ export function VideoCard({ video }: VideoCardProps) {
 
           {/* Duration badge */}
           {video.duration_seconds && (
-            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-none">
               {formatDuration(video.duration_seconds)}
             </div>
           )}

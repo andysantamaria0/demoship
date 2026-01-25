@@ -110,7 +110,7 @@ export function GenerationStatus({
                 return (
                   <div key={step} className="flex items-center">
                     <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                      className={`flex items-center justify-center w-8 h-8 rounded-none text-sm font-medium transition-colors ${
                         isCompleted
                           ? "bg-green-500 text-white"
                           : isCurrent
@@ -149,7 +149,7 @@ export function GenerationStatus({
 
             {/* Show AI summary once available */}
             {video.ai_summary && video.status !== "complete" && (
-              <div className="mt-4 p-3 bg-muted rounded-lg">
+              <div className="mt-4 p-3 bg-muted rounded-none">
                 <p className="text-sm font-medium mb-1">Summary Preview</p>
                 <p className="text-sm text-muted-foreground">
                   {video.ai_summary}

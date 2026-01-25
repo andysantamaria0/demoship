@@ -73,12 +73,12 @@ export const design = {
     },
   },
 
-  // Border radius
+  // Border radius - Vialoure sharp corners
   radius: {
-    sm: "0.375rem", // rounded-md
-    md: "0.5rem", // rounded-lg
-    lg: "0.75rem", // rounded-xl
-    full: "9999px", // rounded-full
+    sm: "0",
+    md: "0",
+    lg: "0",
+    full: "0",
   },
 
   // Shadows
@@ -97,7 +97,7 @@ export const design = {
   // Video player
   video: {
     aspectRatio: "16 / 9",
-    borderRadius: "0.75rem",
+    borderRadius: "0",
   },
 } as const;
 

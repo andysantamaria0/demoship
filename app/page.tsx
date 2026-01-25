@@ -145,7 +145,7 @@ function StepCard({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-4">
+      <div className="w-12 h-12 rounded-none bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-4">
         {number}
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -164,8 +164,8 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="p-6 rounded-lg border bg-card">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+    <div className="p-6 rounded-none border bg-card">
+      <div className="w-10 h-10 rounded-none bg-primary/10 flex items-center justify-center mb-4">
         {icon}
       </div>
       <h3 className="font-semibold mb-2">{title}</h3>
