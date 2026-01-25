@@ -1,0 +1,32 @@
+name: 'DemoShip Generate Video'
+description: 'Automatically generate demo videos from merged pull requests'
+author: 'DemoShip'
+branding:
+  icon: 'video'
+  color: 'purple'
+
+inputs:
+  api-key:
+    description: 'DemoShip API key from your dashboard'
+    required: true
+  post-comment:
+    description: 'Post video link as PR comment when complete'
+    default: 'true'
+  api-url:
+    description: 'DemoShip API URL (for self-hosted instances)'
+    default: 'https://demoship.dev'
+  timeout:
+    description: 'Maximum time to wait for video generation (in seconds)'
+    default: '300'
+
+outputs:
+  video-id:
+    description: 'The unique ID of the generated video'
+  share-url:
+    description: 'The shareable URL for the video'
+  status:
+    description: 'Final status of the video (complete, failed)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
