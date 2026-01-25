@@ -1,17 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Video } from "@/lib/types";
 import { getStatusConfig, getChangeTypeConfig } from "@/lib/design";
 
 interface VideoCardProps {
   video: Video;
+  onDelete?: () => void;
 }
 
-export function VideoCard({ video }: VideoCardProps) {
+export function VideoCard({ video, onDelete }: VideoCardProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const statusConfig = getStatusConfig(video.status);
   const changeTypeConfig = video.change_type
     ? getChangeTypeConfig(video.change_type)
@@ -21,9 +28,76 @@ export function VideoCard({ video }: VideoCardProps) {
     video.status
   );
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/videos/${video.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete video");
+      }
+
+      setShowConfirm(false);
+      onDelete?.();
+      router.refresh();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete video. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <Link href={`/video/${video.id}`}>
-      <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+    <div className="relative group">
+      {/* Delete button - appears on hover */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowConfirm(true);
+        }}
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive text-destructive-foreground p-1.5 rounded-none hover:bg-destructive/90"
+        aria-label="Delete video"
+      >
+        <TrashIcon className="w-4 h-4" />
+      </button>
+
+      {/* Confirmation dialog */}
+      {showConfirm && (
+        <div
+          className="absolute inset-0 z-20 bg-background/95 flex flex-col items-center justify-center p-4 text-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-sm font-medium mb-2">Delete this video?</p>
+          <p className="text-xs text-muted-foreground mb-4">
+            This action cannot be undone.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConfirm(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Link href={`/video/${video.id}`}>
+        <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
         {/* Thumbnail or placeholder */}
         <div className="aspect-video bg-muted relative">
           {video.thumbnail_url ? (
@@ -106,6 +180,26 @@ export function VideoCard({ video }: VideoCardProps) {
         </CardContent>
       </Card>
     </Link>
+    </div>
+  );
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      />
+    </svg>
   );
 }
 
