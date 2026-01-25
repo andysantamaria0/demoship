@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PRInput } from "@/components/pr-input";
+import { HeroVideo } from "@/components/hero-video";
 import { createClient } from "@/lib/supabase/server";
 import { design } from "@/lib/design";
 
@@ -19,9 +20,14 @@ export default async function HomePage() {
             Turn Pull Requests into
             <span className="gradient-text"> Stunning Demo Videos</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
             {design.brand.description}
           </p>
+
+          {/* Hero Demo Video */}
+          <div className="w-full mb-10">
+            <HeroVideo />
+          </div>
 
           {user ? (
             <PRInput />
