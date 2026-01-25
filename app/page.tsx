@@ -16,8 +16,8 @@ export default async function HomePage() {
       <section className="hero-gradient py-20 md:py-32">
         <div className="container mx-auto px-4 flex flex-col items-center text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Turn PRs into
-            <span className="gradient-text"> Demo Videos</span>
+            Turn Pull Requests into
+            <span className="gradient-text"> Stunning Demo Videos</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
             {design.brand.description}
@@ -47,18 +47,18 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <StepCard
               number={1}
-              title="Paste PR URL"
-              description="Enter any GitHub pull request URL"
+              title="Paste PR URLs"
+              description="Enter one or more GitHub PR URLs from the same repo"
             />
             <StepCard
               number={2}
-              title="AI Analysis"
-              description="Claude analyzes code changes and generates a business-focused script"
+              title="AI Does the Work"
+              description="Claude reads your diffs, commits, and comments to craft a compelling narrative"
             />
             <StepCard
               number={3}
-              title="Get Video"
-              description="Receive a shareable demo video with AI narration"
+              title="Share Instantly"
+              description="Get a polished video with voice narration and a shareable link"
             />
           </div>
         </div>
@@ -67,39 +67,42 @@ export default async function HomePage() {
       {/* Features */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Built for Modern Teams
+          <h2 className="text-3xl font-bold text-center mb-4">
+            Everything You Need
           </h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Perfect for sprint demos, release announcements, portfolio showcases, and stakeholder updates.
+          </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <FeatureCard
-              icon={<ClockIcon />}
-              title="Under 2 Minutes"
-              description="From PR URL to shareable video in under 2 minutes"
-            />
-            <FeatureCard
               icon={<BrainIcon />}
-              title="AI-Powered"
-              description="Claude translates technical changes into business value"
+              title="AI-Powered Analysis"
+              description="Claude reads your diffs, commits, and PR description to generate clear, concise summaries"
             />
             <FeatureCard
               icon={<VoiceIcon />}
-              title="Professional Voice"
-              description="ElevenLabs generates natural-sounding narration"
+              title="Professional Narration"
+              description="ElevenLabs voice synthesis creates natural-sounding narration for your demos"
             />
             <FeatureCard
-              icon={<ShareIcon />}
-              title="Easy Sharing"
-              description="Share videos with stakeholders via unique links"
+              icon={<LayersIcon />}
+              title="Multi-PR Support"
+              description="Combine up to 10 PRs from the same repo into a single unified video"
+            />
+            <FeatureCard
+              icon={<ImageIcon />}
+              title="UI Screenshots"
+              description="Automatically extracts preview images from Vercel, Chromatic, and Percy bot comments"
             />
             <FeatureCard
               icon={<CodeIcon />}
               title="Code Visualization"
-              description="Animated code diffs and syntax highlighting"
+              description="Beautiful animated diff views with syntax highlighting"
             />
             <FeatureCard
-              icon={<GitHubIcon />}
-              title="GitHub Integration"
-              description="Works with any public or private repository"
+              icon={<ShareIcon />}
+              title="One-Click Sharing"
+              description="Get a shareable link to send to teammates, stakeholders, or post on social media"
             />
           </div>
         </div>
@@ -113,7 +116,7 @@ export default async function HomePage() {
               Ready to Ship Better Demos?
             </h2>
             <p className="text-lg opacity-90 mb-8">
-              Start generating demo videos from your pull requests today.
+              Join developers who communicate their work more effectively.
             </p>
             <Link href="/login">
               <Button size="lg" variant="secondary" className="h-12 px-8">
@@ -174,14 +177,6 @@ function FeatureCard({
   );
 }
 
-function ClockIcon() {
-  return (
-    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
 function BrainIcon() {
   return (
     <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,10 +209,18 @@ function CodeIcon() {
   );
 }
 
-function GitHubIcon() {
+function LayersIcon() {
   return (
-    <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+  );
+}
+
+function ImageIcon() {
+  return (
+    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   );
 }

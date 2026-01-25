@@ -11,9 +11,9 @@ export const design = {
   // Brand
   brand: {
     name: "DemoShip",
-    tagline: "Turn PRs into shareable demo videos",
+    tagline: "Turn Pull Requests into stunning demo videos",
     description:
-      "Generate AI-powered demo videos from your GitHub pull requests in under 2 minutes.",
+      "Paste a PR URL and watch as AI analyzes your changes, generates a script, and produces a polished video with voice narration — all automatically.",
   },
 
   // Colors (semantic names - actual values in globals.css)
