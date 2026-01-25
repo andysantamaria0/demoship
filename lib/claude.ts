@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { PRData } from "./github";
-import { formatPRDataForAI } from "./github";
+import { formatPRDataForAI, formatMultiplePRsForAI } from "./github";
+import type { PRDataWithNumber } from "./github";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -94,6 +95,115 @@ export async function analyzePR(prData: PRData): Promise<AIAnalysis> {
   const result = JSON.parse(jsonMatch[0]);
 
   return {
+    summary: result.summary,
+    script: result.script,
+    changeType: result.changeType,
+  };
+}
+
+export interface MultiPRAIAnalysis extends AIAnalysis {
+  unifiedTitle: string;
+}
+
+const MULTI_PR_SYSTEM_PROMPT = `You are an expert at synthesizing multiple technical code changes into a clear, compelling, UNIFIED business narrative.
+
+Your audience is business stakeholders, CEOs, and engineering managers - NOT developers. They want to understand:
+1. The OVERARCHING THEME or goal that connects these changes
+2. WHAT is being shipped (in plain English)
+3. WHY it matters to the business/users
+4. The combined value being delivered
+
+CRITICAL: You must find the common thread that ties all PRs together. DO NOT create a list or summary of each PR separately. Instead, tell ONE cohesive story.
+
+Guidelines:
+- Find and emphasize the unifying narrative across all PRs
+- Lead with business value, never technical details
+- Use active voice and confident language
+- Avoid ALL technical jargon (no "refactored", "middleware", "API endpoints", "modules", "components")
+- Translate technical changes into user/business impact
+- Be concise - every sentence should add value
+- Sound professional but not robotic
+
+Example transformations:
+- Multiple auth-related PRs → "A complete security overhaul that protects customer accounts"
+- Mix of UI and API changes → "A faster, more intuitive experience for customers"
+- Multiple bug fixes → "Critical reliability improvements ensuring consistent service"`;
+
+const MULTI_PR_USER_PROMPT = `Analyze these combined pull requests and generate:
+
+1. A UNIFIED TITLE (5-10 words) that captures the overall theme of all changes. This should be a compelling headline, not a list.
+   Good: "Complete checkout experience redesign"
+   Bad: "PR #123, PR #124, and PR #125"
+   Bad: "Authentication, UI fixes, and API updates"
+
+2. A brief SUMMARY (2-3 sentences) explaining what these combined changes accomplish and why it matters, written for a non-technical executive. Emphasize the unified goal.
+
+3. A NARRATION SCRIPT for a 90-120 second video demo. The script should follow this structure:
+
+   **Hook (10-15 seconds)**: Lead with the overarching business value
+   - Example: "This release transforms the customer onboarding experience with three major improvements working together"
+
+   **Unified Story (40-50 seconds)**: Weave all changes into ONE narrative, not separate sections per PR
+   - Focus on how changes work together
+   - Explain the combined user-facing impact
+   - Example: "Users will now see faster load times AND cleaner interfaces AND better error messages - all working together for a seamless experience"
+
+   **Why It Matters (20-25 seconds)**: Connect to business goals
+   - Example: "These improvements directly address the top customer pain points from Q4"
+
+   **Wrap-up (10-15 seconds)**: Summarize the combined value delivered
+   - Example: "Together, these changes represent our biggest user experience improvement this quarter"
+
+4. Classify the OVERALL change type as one of: feature, bugfix, refactor, docs, other
+   Choose based on the primary theme, not individual PRs.
+
+Respond in this exact JSON format:
+{
+  "unifiedTitle": "Your 5-10 word unified title here",
+  "summary": "Your 2-3 sentence unified summary here",
+  "script": "Your full narration script here (90-120 seconds)",
+  "changeType": "feature|bugfix|refactor|docs|other"
+}
+
+Here are the combined pull requests:
+
+`;
+
+export async function analyzeMultiplePRs(
+  prDataList: PRDataWithNumber[],
+  owner: string,
+  repo: string
+): Promise<MultiPRAIAnalysis> {
+  const prContent = formatMultiplePRsForAI(prDataList, owner, repo);
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 3000,
+    messages: [
+      {
+        role: "user",
+        content: MULTI_PR_USER_PROMPT + prContent,
+      },
+    ],
+    system: MULTI_PR_SYSTEM_PROMPT,
+  });
+
+  // Extract text content from the response
+  const textContent = message.content.find((block) => block.type === "text");
+  if (!textContent || textContent.type !== "text") {
+    throw new Error("No text content in Claude response");
+  }
+
+  // Parse JSON from response
+  const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error("Could not parse JSON from Claude response");
+  }
+
+  const result = JSON.parse(jsonMatch[0]);
+
+  return {
+    unifiedTitle: result.unifiedTitle,
     summary: result.summary,
     script: result.script,
     changeType: result.changeType,

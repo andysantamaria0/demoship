@@ -175,3 +175,85 @@ export function formatPRDataForAI(prData: PRData): string {
 
   return content;
 }
+
+export interface PRDataWithNumber extends PRData {
+  prNumber: number;
+}
+
+export function formatMultiplePRsForAI(
+  prDataList: PRDataWithNumber[],
+  owner: string,
+  repo: string
+): string {
+  const totalFiles = prDataList.reduce((sum, pr) => sum + pr.filesChanged, 0);
+  const totalAdditions = prDataList.reduce((sum, pr) => sum + pr.additions, 0);
+  const totalDeletions = prDataList.reduce((sum, pr) => sum + pr.deletions, 0);
+
+  let content = `# Combined Pull Requests for ${owner}/${repo}\n\n`;
+  content += `**Total PRs:** ${prDataList.length}\n`;
+  content += `**Total Files Changed:** ${totalFiles}\n`;
+  content += `**Total Additions:** +${totalAdditions}\n`;
+  content += `**Total Deletions:** -${totalDeletions}\n\n`;
+  content += `---\n\n`;
+
+  // Calculate max files per PR to stay within token budget
+  // More PRs = fewer files per PR to analyze
+  const maxFilesPerPR = Math.max(3, Math.floor(15 / prDataList.length));
+
+  for (let i = 0; i < prDataList.length; i++) {
+    const prData = prDataList[i];
+    content += `## PR #${prData.prNumber}: ${prData.title}\n\n`;
+    content += `**Author:** ${prData.author}\n`;
+    content += `**Files Changed:** ${prData.filesChanged}\n`;
+    content += `**Additions:** +${prData.additions}\n`;
+    content += `**Deletions:** -${prData.deletions}\n\n`;
+
+    if (prData.description) {
+      content += `### Description\n${prData.description}\n\n`;
+    }
+
+    content += `### Commits\n`;
+    // Limit commits per PR for multi-PR analysis
+    const maxCommits = Math.min(5, prData.commits.length);
+    for (let j = 0; j < maxCommits; j++) {
+      const commit = prData.commits[j];
+      content += `- ${commit.sha}: ${commit.message}\n`;
+    }
+    if (prData.commits.length > maxCommits) {
+      content += `- ... and ${prData.commits.length - maxCommits} more commits\n`;
+    }
+    content += "\n";
+
+    content += `### Key Files Changed\n`;
+    // Limit files per PR based on total PR count
+    const filesToShow = prData.files.slice(0, maxFilesPerPR);
+    for (const file of filesToShow) {
+      content += `\n#### ${file.filename} (${file.status})\n`;
+      content += `+${file.additions} -${file.deletions}\n`;
+      if (file.patch) {
+        // Shorter patches for multi-PR analysis
+        const truncatedPatch = truncatePatchForMultiPR(file.patch, 200);
+        content += "```diff\n" + truncatedPatch + "\n```\n";
+      }
+    }
+    if (prData.files.length > maxFilesPerPR) {
+      content += `\n*... and ${prData.files.length - maxFilesPerPR} more files*\n`;
+    }
+
+    if (i < prDataList.length - 1) {
+      content += `\n---\n\n`;
+    }
+  }
+
+  return content;
+}
+
+function truncatePatchForMultiPR(patch: string, maxLines: number): string {
+  const lines = patch.split("\n");
+  if (lines.length <= maxLines) return patch;
+
+  return (
+    lines.slice(0, maxLines).join("\n") +
+    `\n... (${lines.length - maxLines} more lines truncated)`
+  );
+}

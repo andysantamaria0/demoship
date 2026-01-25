@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getChangeTypeConfig } from "@/lib/design";
-import type { Video } from "@/lib/types";
+import type { Video, VideoWithPRs, VideoPR } from "@/lib/types";
 
 export default async function VideoPage({
   params,
@@ -29,7 +29,7 @@ export default async function VideoPage({
 
   const { data: video, error } = await supabase
     .from("videos")
-    .select("*")
+    .select("*, video_prs(*)")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
@@ -37,6 +37,12 @@ export default async function VideoPage({
   if (error || !video) {
     notFound();
   }
+
+  const videoWithPRs = video as VideoWithPRs;
+  const videoPRs: VideoPR[] = (videoWithPRs.video_prs || []).sort(
+    (a, b) => a.display_order - b.display_order
+  );
+  const isMultiPR = videoPRs.length > 1;
 
   const isComplete = video.status === "complete";
   const canRetry = video.status === "failed" || video.status === "rendering";
@@ -89,26 +95,74 @@ export default async function VideoPage({
                 <h1 className="text-2xl font-bold">
                   {video.pr_title || `PR #${video.pr_number}`}
                 </h1>
-                {changeTypeConfig && (
-                  <Badge
-                    style={{
-                      backgroundColor: changeTypeConfig.bg,
-                      color: changeTypeConfig.text,
-                    }}
-                  >
-                    {changeTypeConfig.label}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {isMultiPR && (
+                    <Badge variant="secondary">
+                      {videoPRs.length} PRs combined
+                    </Badge>
+                  )}
+                  {changeTypeConfig && (
+                    <Badge
+                      style={{
+                        backgroundColor: changeTypeConfig.bg,
+                        color: changeTypeConfig.text,
+                      }}
+                    >
+                      {changeTypeConfig.label}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <a
-                href={video.pr_url}
+                href={`https://github.com/${video.pr_owner}/${video.pr_repo}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:underline"
               >
-                {video.pr_owner}/{video.pr_repo}#{video.pr_number}
+                {video.pr_owner}/{video.pr_repo}
               </a>
             </div>
+
+            {/* Multi-PR list */}
+            {isMultiPR && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Included Pull Requests</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {videoPRs.map((pr) => (
+                    <div key={pr.id} className="flex items-start justify-between gap-4 py-2 border-b last:border-0">
+                      <div className="flex-1 min-w-0">
+                        <a
+                          href={pr.pr_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium hover:underline text-sm"
+                        >
+                          #{pr.pr_number}: {pr.pr_title || `PR #${pr.pr_number}`}
+                        </a>
+                        {pr.pr_author && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            by {pr.pr_author}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                        {pr.pr_files_changed !== null && (
+                          <span>{pr.pr_files_changed} files</span>
+                        )}
+                        {pr.pr_additions !== null && (
+                          <span className="text-green-600">+{pr.pr_additions}</span>
+                        )}
+                        {pr.pr_deletions !== null && (
+                          <span className="text-red-600">-{pr.pr_deletions}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {video.ai_summary && (
               <Card>
@@ -160,23 +214,39 @@ export default async function VideoPage({
             {/* Stats */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Changes</CardTitle>
+                <CardTitle className="text-base">
+                  {isMultiPR ? "Total Changes" : "Changes"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                {isMultiPR && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Pull requests</span>
+                    <span>{videoPRs.length}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Files changed</span>
-                  <span>{video.pr_files_changed || 0}</span>
+                  <span>
+                    {isMultiPR
+                      ? video.total_files_changed || 0
+                      : video.pr_files_changed || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Additions</span>
                   <span className="text-green-600">
-                    +{video.pr_additions || 0}
+                    +{isMultiPR
+                      ? video.total_additions || 0
+                      : video.pr_additions || 0}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Deletions</span>
                   <span className="text-red-600">
-                    -{video.pr_deletions || 0}
+                    -{isMultiPR
+                      ? video.total_deletions || 0
+                      : video.pr_deletions || 0}
                   </span>
                 </div>
                 {video.view_count > 0 && (

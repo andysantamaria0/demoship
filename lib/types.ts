@@ -26,7 +26,7 @@ export interface Video {
   pr_repo: string;
   pr_number: number;
 
-  // PR metadata
+  // PR metadata (for single PR or primary PR in multi-PR)
   pr_title: string | null;
   pr_description: string | null;
   pr_author: string | null;
@@ -34,6 +34,12 @@ export interface Video {
   pr_files_changed: number | null;
   pr_additions: number | null;
   pr_deletions: number | null;
+
+  // Multi-PR aggregate fields
+  pr_count: number;
+  total_files_changed: number | null;
+  total_additions: number | null;
+  total_deletions: number | null;
 
   // AI analysis
   ai_summary: string | null;
@@ -59,9 +65,36 @@ export interface Video {
 }
 
 export interface CreateVideoInput {
-  prUrl: string;
+  prUrls: string[];
+}
+
+export interface VideoPR {
+  id: string;
+  video_id: string;
+  pr_url: string;
+  pr_number: number;
+  display_order: number;
+  pr_title: string | null;
+  pr_description: string | null;
+  pr_author: string | null;
+  pr_author_avatar: string | null;
+  pr_files_changed: number | null;
+  pr_additions: number | null;
+  pr_deletions: number | null;
+  created_at: string;
+}
+
+export interface VideoWithPRs extends Video {
+  video_prs: VideoPR[];
 }
 
 export interface VideoWithProfile extends Video {
   profiles: Profile | null;
+}
+
+export interface ParsedPRInfo {
+  owner: string;
+  repo: string;
+  number: number;
+  url: string;
 }
