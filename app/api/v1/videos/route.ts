@@ -330,7 +330,7 @@ async function processVideoWithWebhook(videoId: string, webhookUrl?: string) {
       .eq("id", videoId);
 
     // Generate voice with ElevenLabs
-    const audioBuffer = await generateVoice(analysis.script);
+    const { audioBuffer, durationMs: audioDurationMs } = await generateVoice(analysis.script);
 
     // Upload audio to Supabase Storage
     const audioFileName = `${videoId}.mp3`;
@@ -353,6 +353,7 @@ async function processVideoWithWebhook(videoId: string, webhookUrl?: string) {
       .from("videos")
       .update({
         audio_url: audioUrl,
+        audio_duration_ms: audioDurationMs,
         status: "rendering",
       })
       .eq("id", videoId);
@@ -398,6 +399,7 @@ async function processVideoWithWebhook(videoId: string, webhookUrl?: string) {
           aiSummary: analysis.summary,
           aiScript: analysis.script,
           audioUrl,
+          audioDurationMs,
           callbackUrl: internalWebhookUrl,
           externalWebhookUrl: webhookUrl, // Pass through for external notification
         }),

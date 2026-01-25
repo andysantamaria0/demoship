@@ -74,7 +74,7 @@ async function processVideo(videoId: string) {
       .eq("id", videoId);
 
     // Generate voice with ElevenLabs
-    const audioBuffer = await generateVoice(analysis.script);
+    const { audioBuffer, durationMs: audioDurationMs } = await generateVoice(analysis.script);
 
     // Upload audio to Supabase Storage
     const audioFileName = `${videoId}.mp3`;
@@ -97,6 +97,7 @@ async function processVideo(videoId: string) {
       .from("videos")
       .update({
         audio_url: audioUrl,
+        audio_duration_ms: audioDurationMs,
         status: "rendering",
       })
       .eq("id", videoId);
@@ -128,6 +129,7 @@ async function processVideo(videoId: string) {
           aiSummary: analysis.summary,
           aiScript: analysis.script,
           audioUrl,
+          audioDurationMs,
           callbackUrl: webhookUrl,
         }),
       });

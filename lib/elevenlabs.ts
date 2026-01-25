@@ -1,3 +1,5 @@
+import * as musicMetadata from "music-metadata";
+
 const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1";
 
 // Adam voice - professional, clear, neutral
@@ -9,10 +11,15 @@ export interface VoiceGenerationOptions {
   similarityBoost?: number;
 }
 
+export interface VoiceGenerationResult {
+  audioBuffer: ArrayBuffer;
+  durationMs: number;
+}
+
 export async function generateVoice(
   text: string,
   options: VoiceGenerationOptions = {}
-): Promise<ArrayBuffer> {
+): Promise<VoiceGenerationResult> {
   const {
     voiceId = DEFAULT_VOICE_ID,
     stability = 0.5,
@@ -43,7 +50,28 @@ export async function generateVoice(
     throw new Error(`ElevenLabs API error: ${response.status} - ${error}`);
   }
 
-  return response.arrayBuffer();
+  const arrayBuffer = await response.arrayBuffer();
+
+  // Calculate duration from MP3 data
+  const durationMs = await calculateMp3Duration(arrayBuffer);
+
+  return { audioBuffer: arrayBuffer, durationMs };
+}
+
+async function calculateMp3Duration(arrayBuffer: ArrayBuffer): Promise<number> {
+  try {
+    const buffer = Buffer.from(arrayBuffer);
+    const metadata = await musicMetadata.parseBuffer(buffer, { mimeType: "audio/mpeg" });
+    // Return duration in milliseconds
+    return Math.round((metadata.format.duration || 0) * 1000);
+  } catch (error) {
+    console.warn("Failed to parse MP3 duration, using estimate:", error);
+    // Fallback: estimate from file size assuming 128kbps bitrate
+    const fileSizeBytes = arrayBuffer.byteLength;
+    const bitrateKbps = 128;
+    const durationSeconds = (fileSizeBytes * 8) / (bitrateKbps * 1000);
+    return Math.round(durationSeconds * 1000);
+  }
 }
 
 export async function getVoices(): Promise<
