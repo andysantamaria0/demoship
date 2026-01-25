@@ -36,6 +36,9 @@ export function Header({ user }: HeaderProps) {
               <Link href="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
+              <Link href="/dashboard/settings">
+                <Button variant="ghost">Settings</Button>
+              </Link>
               <div className="flex items-center gap-3">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={user.user_metadata.avatar_url} />
