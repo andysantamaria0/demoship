@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { parsePRUrl, fetchPRData, fetchPRComments } from "@/lib/github";
-import { parseScreenshotsFromComments } from "@/lib/screenshots";
+import { parseScreenshotsFromComments, extractPreviewUrlsFromComments } from "@/lib/screenshots";
+import { capturePreviewScreenshots } from "@/lib/preview-capture";
 import { analyzePR, analyzeMultiplePRs } from "@/lib/claude";
 import { generateVoice } from "@/lib/elevenlabs";
 import { nanoid } from "nanoid";
@@ -187,7 +188,70 @@ async function processVideo(videoId: string) {
 
     // Parse screenshots from all PR comments
     const allComments = commentsResults.flat();
-    const screenshots = parseScreenshotsFromComments(allComments);
+    let screenshots = parseScreenshotsFromComments(allComments);
+
+    // If no screenshots found, try auto-capture from preview URLs
+    const remotionServerUrl = process.env.REMOTION_SERVER_URL;
+    const webhookSecret = process.env.REMOTION_WEBHOOK_SECRET;
+
+    if (screenshots.length === 0 && remotionServerUrl && webhookSecret) {
+      console.log(`[${videoId}] No screenshots found, attempting auto-capture...`);
+
+      // Extract preview URLs from comments
+      const previewUrls = extractPreviewUrlsFromComments(allComments);
+
+      if (previewUrls.length > 0) {
+        // Use the first preview URL for auto-capture
+        const firstPreviewUrl = previewUrls[0];
+        console.log(`[${videoId}] Found preview URL: ${firstPreviewUrl.url}`);
+
+        try {
+          const capturedScreenshots = await capturePreviewScreenshots(
+            { url: firstPreviewUrl.url, routes: ["/"] },
+            remotionServerUrl,
+            webhookSecret
+          );
+
+          if (capturedScreenshots.length > 0) {
+            console.log(`[${videoId}] Auto-captured ${capturedScreenshots.length} screenshots`);
+
+            // Upload captured screenshots to Supabase storage
+            for (let i = 0; i < capturedScreenshots.length; i++) {
+              const captured = capturedScreenshots[i];
+              const filename = `screenshots/${videoId}-${i}.png`;
+
+              const { error: uploadError } = await supabase.storage
+                .from("media")
+                .upload(filename, captured.buffer, {
+                  contentType: "image/png",
+                  upsert: true,
+                });
+
+              if (uploadError) {
+                console.warn(`Failed to upload screenshot ${i}:`, uploadError.message);
+                continue;
+              }
+
+              const {
+                data: { publicUrl },
+              } = supabase.storage.from("media").getPublicUrl(filename);
+
+              screenshots.push({
+                url: publicUrl,
+                alt_text: `Auto-captured: ${captured.route}`,
+                source: "auto-capture",
+                comment_id: 0,
+                comment_author: null,
+                display_order: i,
+              });
+            }
+          }
+        } catch (captureError) {
+          console.warn(`[${videoId}] Auto-capture failed:`, captureError);
+          // Non-fatal: continue without auto-captured screenshots
+        }
+      }
+    }
 
     // Update each video_pr with its metadata
     if (videoPRs.length > 0) {
@@ -322,7 +386,6 @@ async function processVideo(videoId: string) {
       .eq("id", videoId);
 
     // Trigger video rendering on Railway
-    const remotionServerUrl = process.env.REMOTION_SERVER_URL;
     if (remotionServerUrl) {
       const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/render-complete`;
 
@@ -338,6 +401,24 @@ async function processVideo(videoId: string) {
         source: s.source,
         display_order: index,
       }));
+
+      // Fetch screen recording if exists
+      const { data: screenRecording } = await supabase
+        .from("screen_recordings")
+        .select("storage_path, duration_ms")
+        .eq("video_id", videoId)
+        .single();
+
+      let remotionScreenRecording: { url: string; durationMs: number } | undefined;
+      if (screenRecording) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("media").getPublicUrl(screenRecording.storage_path);
+        remotionScreenRecording = {
+          url: publicUrl,
+          durationMs: screenRecording.duration_ms,
+        };
+      }
 
       const renderResponse = await fetch(`${remotionServerUrl}/render`, {
         method: "POST",
@@ -360,6 +441,7 @@ async function processVideo(videoId: string) {
             prCount: video.pr_count || 1,
             prTitles,
             screenshots: remotionScreenshots.length > 0 ? remotionScreenshots : undefined,
+            screenRecording: remotionScreenRecording,
           },
           aiSummary: analysis.summary,
           aiScript: analysis.script,

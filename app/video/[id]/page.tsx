@@ -5,6 +5,7 @@ import { VideoPlayer } from "@/components/video-player";
 import { GenerationStatus } from "@/components/generation-status";
 import { CopyShareLink } from "@/components/copy-share-link";
 import { RetryButton } from "@/components/retry-button";
+import { RecordingUpload } from "@/components/recording-upload";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +39,26 @@ export default async function VideoPage({
     notFound();
   }
 
+  // Fetch screen recording if exists
+  const { data: screenRecording } = await supabase
+    .from("screen_recordings")
+    .select("*")
+    .eq("video_id", id)
+    .single();
+
+  // Get public URL for screen recording if it exists
+  let existingRecording = null;
+  if (screenRecording) {
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("media").getPublicUrl(screenRecording.storage_path);
+    existingRecording = {
+      url: publicUrl,
+      duration_ms: screenRecording.duration_ms,
+      file_size_bytes: screenRecording.file_size_bytes,
+    };
+  }
+
   const videoWithPRs = video as VideoWithPRs;
   const videoPRs: VideoPR[] = (videoWithPRs.video_prs || []).sort(
     (a, b) => a.display_order - b.display_order
@@ -46,6 +67,7 @@ export default async function VideoPage({
 
   const isComplete = video.status === "complete";
   const canRetry = video.status === "failed" || video.status === "rendering";
+  const canUploadRecording = !["complete", "rendering"].includes(video.status);
   const changeTypeConfig = video.change_type
     ? getChangeTypeConfig(video.change_type)
     : null;
@@ -186,6 +208,14 @@ export default async function VideoPage({
                   </p>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Screen Recording Upload */}
+            {canUploadRecording && (
+              <RecordingUpload
+                videoId={video.id}
+                existingRecording={existingRecording}
+              />
             )}
           </div>
 
