@@ -6,14 +6,35 @@ const MAX_SCREENSHOTS = 6;
 
 // Bot usernames that typically post preview screenshots
 const SCREENSHOT_BOTS: Record<string, ScreenshotSource> = {
+  // Vercel
   "vercel": "vercel",
   "vercel[bot]": "vercel",
+  // Chromatic
   "chromatic-com": "chromatic",
   "chromatic-com[bot]": "chromatic",
   "chromatic": "chromatic",
+  // Percy
   "percy-bot": "percy",
   "percy[bot]": "percy",
   "percy": "percy",
+  // Netlify
+  "netlify": "netlify",
+  "netlify[bot]": "netlify",
+  // Cloudflare Pages
+  "cloudflare-pages": "cloudflare",
+  "cloudflare-pages[bot]": "cloudflare",
+  "cloudflare": "cloudflare",
+  // Railway
+  "railway-app": "railway",
+  "railway-app[bot]": "railway",
+  "railway": "railway",
+  // Render
+  "render": "render",
+  "render[bot]": "render",
+  // Fly.io
+  "fly": "fly",
+  "fly[bot]": "fly",
+  "fly-apps": "fly",
 };
 
 // URL patterns that indicate screenshot sources
@@ -21,6 +42,21 @@ const SOURCE_URL_PATTERNS: Array<{ pattern: RegExp; source: ScreenshotSource }> 
   { pattern: /vercel\.com|vercel\.app|\.vercel\.sh/i, source: "vercel" },
   { pattern: /chromatic\.com|chromaticqa\.com/i, source: "chromatic" },
   { pattern: /percy\.io/i, source: "percy" },
+  { pattern: /netlify\.app|netlify\.com/i, source: "netlify" },
+  { pattern: /\.pages\.dev/i, source: "cloudflare" },
+  { pattern: /\.railway\.app/i, source: "railway" },
+  { pattern: /\.onrender\.com/i, source: "render" },
+  { pattern: /\.fly\.dev/i, source: "fly" },
+];
+
+// Preview deployment URL patterns for auto-capture
+const PREVIEW_URL_PATTERNS: Array<{ pattern: RegExp; source: ScreenshotSource }> = [
+  { pattern: /https?:\/\/[a-z0-9-]+\.vercel\.app\b/gi, source: "vercel" },
+  { pattern: /https?:\/\/[a-z0-9-]+--[a-z0-9-]+\.netlify\.app\b/gi, source: "netlify" },
+  { pattern: /https?:\/\/[a-z0-9-]+\.pages\.dev\b/gi, source: "cloudflare" },
+  { pattern: /https?:\/\/[a-z0-9-]+\.railway\.app\b/gi, source: "railway" },
+  { pattern: /https?:\/\/[a-z0-9-]+\.onrender\.com\b/gi, source: "render" },
+  { pattern: /https?:\/\/[a-z0-9-]+\.fly\.dev\b/gi, source: "fly" },
 ];
 
 // Patterns to filter out non-screenshot images
@@ -201,4 +237,49 @@ export function isValidScreenshotUrl(url: string): boolean {
   );
 
   return imageExtensions.test(url) || isKnownHost;
+}
+
+/**
+ * Extract preview deployment URLs from PR comments
+ * Returns URLs from deployment bots that can be used for auto-capture
+ */
+export function extractPreviewUrlsFromComments(
+  comments: PRComment[]
+): Array<{ url: string; source: ScreenshotSource }> {
+  const urls: Array<{ url: string; source: ScreenshotSource }> = [];
+  const seenUrls = new Set<string>();
+
+  for (const comment of comments) {
+    const authorLower = comment.user.login.toLowerCase();
+
+    // Check if comment is from a known deployment bot
+    const isDeploymentBot = Object.keys(SCREENSHOT_BOTS).some(
+      bot => authorLower === bot.toLowerCase()
+    );
+
+    if (!isDeploymentBot) {
+      continue;
+    }
+
+    // Extract preview URLs from the comment body
+    for (const { pattern, source } of PREVIEW_URL_PATTERNS) {
+      // Reset regex state since we use global flag
+      pattern.lastIndex = 0;
+
+      let match;
+      while ((match = pattern.exec(comment.body)) !== null) {
+        const url = match[0];
+
+        // Skip if already seen
+        if (seenUrls.has(url)) {
+          continue;
+        }
+
+        seenUrls.add(url);
+        urls.push({ url, source });
+      }
+    }
+  }
+
+  return urls;
 }

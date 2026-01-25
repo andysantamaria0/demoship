@@ -100,7 +100,18 @@ export interface ParsedPRInfo {
 }
 
 // Screenshot types
-export type ScreenshotSource = 'vercel' | 'chromatic' | 'percy' | 'generic';
+export type ScreenshotSource =
+  | 'vercel'
+  | 'chromatic'
+  | 'percy'
+  | 'generic'
+  | 'netlify'
+  | 'cloudflare'
+  | 'railway'
+  | 'render'
+  | 'fly'
+  | 'user-upload'
+  | 'auto-capture';
 
 export interface PRScreenshot {
   id?: string;
@@ -116,6 +127,18 @@ export interface PRScreenshot {
 
 export interface VideoWithScreenshots extends Video {
   pr_screenshots: PRScreenshot[];
+}
+
+// Screen Recording types
+export interface ScreenRecording {
+  id: string;
+  video_id: string;
+  user_id: string;
+  storage_path: string;
+  duration_ms: number;
+  file_size_bytes: number;
+  display_order: number;
+  created_at: string;
 }
 
 // API Keys
