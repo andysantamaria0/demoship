@@ -151,3 +151,15 @@ export interface ApiKey {
   created_at: string;
   revoked_at: string | null;
 }
+
+// Feedback
+export interface Feedback {
+  id: string;
+  user_id: string;
+  github_username: string | null;
+  feedback: string;
+  pr_url: string | null;
+  video_id: string | null;
+  time_to_complete_ms: number | null;
+  created_at: string;
+}

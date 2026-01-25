@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Karla, Playfair_Display, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/header";
+import { FeedbackButton } from "@/components/feedback-button";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -49,6 +50,7 @@ export default async function RootLayout({
       >
         <Header user={user} />
         <main>{children}</main>
+        <FeedbackButton user={user} />
       </body>
     </html>
   );

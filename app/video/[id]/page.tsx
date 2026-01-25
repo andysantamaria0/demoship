@@ -6,6 +6,7 @@ import { GenerationStatus } from "@/components/generation-status";
 import { CopyShareLink } from "@/components/copy-share-link";
 import { RetryButton } from "@/components/retry-button";
 import { RecordingUpload } from "@/components/recording-upload";
+import { FeedbackPrompt } from "@/components/feedback-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -107,6 +108,19 @@ export default async function VideoPage({
             </div>
           )}
         </div>
+
+        {/* Feedback prompt for completed videos */}
+        {isComplete && (
+          <div className="mb-8">
+            <FeedbackPrompt
+              videoId={video.id}
+              prUrl={video.pr_url}
+              githubUsername={user.user_metadata?.user_name}
+              createdAt={video.created_at}
+              completedAt={video.completed_at}
+            />
+          </div>
+        )}
 
         {/* Video info */}
         <div className="grid md:grid-cols-3 gap-6">
