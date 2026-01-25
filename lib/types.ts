@@ -98,3 +98,22 @@ export interface ParsedPRInfo {
   number: number;
   url: string;
 }
+
+// Screenshot types
+export type ScreenshotSource = 'vercel' | 'chromatic' | 'percy' | 'generic';
+
+export interface PRScreenshot {
+  id?: string;
+  video_id?: string;
+  url: string;
+  alt_text: string | null;
+  source: ScreenshotSource;
+  comment_id: number;
+  comment_author: string | null;
+  display_order: number;
+  created_at?: string;
+}
+
+export interface VideoWithScreenshots extends Video {
+  pr_screenshots: PRScreenshot[];
+}

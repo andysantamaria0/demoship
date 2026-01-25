@@ -257,3 +257,57 @@ function truncatePatchForMultiPR(patch: string, maxLines: number): string {
     `\n... (${lines.length - maxLines} more lines truncated)`
   );
 }
+
+// PR Comment types
+export interface PRComment {
+  id: number;
+  body: string;
+  user: {
+    login: string;
+    type: string;
+  };
+  created_at: string;
+}
+
+export async function fetchPRComments(
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<PRComment[]> {
+  const headers: HeadersInit = {
+    Accept: "application/vnd.github.v3+json",
+  };
+
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+
+  // PR comments are on the issues endpoint
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    // Non-fatal: return empty array if comments can't be fetched
+    console.warn(`Failed to fetch PR comments: ${response.status}`);
+    return [];
+  }
+
+  const comments = await response.json();
+
+  return comments.map((comment: {
+    id: number;
+    body: string;
+    user: { login: string; type: string };
+    created_at: string;
+  }) => ({
+    id: comment.id,
+    body: comment.body,
+    user: {
+      login: comment.user.login,
+      type: comment.user.type,
+    },
+    created_at: comment.created_at,
+  }));
+}

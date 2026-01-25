@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { parsePRUrl, fetchPRData } from "@/lib/github";
+import { parsePRUrl, fetchPRData, fetchPRComments } from "@/lib/github";
+import { parseScreenshotsFromComments } from "@/lib/screenshots";
 import { analyzePR, analyzeMultiplePRs } from "@/lib/claude";
 import { generateVoice } from "@/lib/elevenlabs";
 import { nanoid } from "nanoid";
-import type { Video, VideoWithPRs, VideoPR, ParsedPRInfo } from "@/lib/types";
+import type { Video, VideoWithPRs, VideoPR, ParsedPRInfo, PRScreenshot } from "@/lib/types";
 import type { PRDataWithNumber } from "@/lib/github";
 
 export async function GET() {
@@ -165,14 +166,28 @@ async function processVideo(videoId: string) {
       .update({ status: "analyzing" })
       .eq("id", videoId);
 
-    // Fetch PR data from GitHub for all PRs in parallel
-    const prDataPromises = videoPRs.length > 0
-      ? videoPRs
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((vpr) => fetchPRData(video.pr_owner, video.pr_repo, vpr.pr_number))
-      : [fetchPRData(video.pr_owner, video.pr_repo, video.pr_number)];
+    // Fetch PR data and comments from GitHub in parallel
+    const sortedPRs = videoPRs.length > 0
+      ? videoPRs.sort((a, b) => a.display_order - b.display_order)
+      : [{ pr_number: video.pr_number }];
 
-    const prDataResults = await Promise.all(prDataPromises);
+    const prDataPromises = sortedPRs.map((vpr) =>
+      fetchPRData(video.pr_owner, video.pr_repo, vpr.pr_number)
+    );
+
+    // Fetch comments for all PRs to extract screenshots
+    const commentsPromises = sortedPRs.map((vpr) =>
+      fetchPRComments(video.pr_owner, video.pr_repo, vpr.pr_number)
+    );
+
+    const [prDataResults, commentsResults] = await Promise.all([
+      Promise.all(prDataPromises),
+      Promise.all(commentsPromises),
+    ]);
+
+    // Parse screenshots from all PR comments
+    const allComments = commentsResults.flat();
+    const screenshots = parseScreenshotsFromComments(allComments);
 
     // Update each video_pr with its metadata
     if (videoPRs.length > 0) {
@@ -213,8 +228,31 @@ async function processVideo(videoId: string) {
         total_files_changed: totalFilesChanged,
         total_additions: totalAdditions,
         total_deletions: totalDeletions,
+        screenshot_count: screenshots.length,
       })
       .eq("id", videoId);
+
+    // Store screenshots in database
+    if (screenshots.length > 0) {
+      const screenshotsData = screenshots.map((screenshot, index) => ({
+        video_id: videoId,
+        url: screenshot.url,
+        alt_text: screenshot.alt_text,
+        source: screenshot.source,
+        comment_id: screenshot.comment_id,
+        comment_author: screenshot.comment_author,
+        display_order: index,
+      }));
+
+      const { error: screenshotsError } = await supabase
+        .from("pr_screenshots")
+        .insert(screenshotsData);
+
+      if (screenshotsError) {
+        console.warn("Failed to store screenshots:", screenshotsError.message);
+        // Non-fatal: continue processing without screenshots
+      }
+    }
 
     // Analyze with Claude - use multi-PR or single-PR analysis
     let analysis;
@@ -293,6 +331,14 @@ async function processVideo(videoId: string) {
         ? prDataResults.map((pr) => pr.title)
         : undefined;
 
+      // Format screenshots for Remotion
+      const remotionScreenshots = screenshots.map((s, index) => ({
+        url: s.url,
+        alt_text: s.alt_text,
+        source: s.source,
+        display_order: index,
+      }));
+
       const renderResponse = await fetch(`${remotionServerUrl}/render`, {
         method: "POST",
         headers: {
@@ -313,6 +359,7 @@ async function processVideo(videoId: string) {
             repo: `${video.pr_owner}/${video.pr_repo}`,
             prCount: video.pr_count || 1,
             prTitles,
+            screenshots: remotionScreenshots.length > 0 ? remotionScreenshots : undefined,
           },
           aiSummary: analysis.summary,
           aiScript: analysis.script,
