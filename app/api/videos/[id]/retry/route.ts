@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(
@@ -28,10 +28,10 @@ export async function POST(
     return NextResponse.json({ error: "Video not found" }, { status: 404 });
   }
 
-  const retryableStatuses = ["failed", "rendering"];
+  const retryableStatuses = ["failed", "rendering", "pending"];
   if (!retryableStatuses.includes(video.status)) {
     return NextResponse.json(
-      { error: "Can only retry failed or stuck videos" },
+      { error: "Can only retry failed, stuck, or pending videos" },
       { status: 400 }
     );
   }
@@ -51,11 +51,13 @@ export async function POST(
 
   // Re-trigger processing by calling the videos API
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  fetch(`${baseUrl}/api/videos/process`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ videoId: id }),
-  }).catch(console.error);
+  after(async () => {
+    await fetch(`${baseUrl}/api/videos/process`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoId: id }),
+    }).catch(console.error);
+  });
 
   return NextResponse.json({ success: true });
 }

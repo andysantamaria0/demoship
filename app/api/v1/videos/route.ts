@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { validateApiKey, checkRateLimit } from "@/lib/api-auth";
 import { parsePRUrl, fetchPRData, fetchPRComments } from "@/lib/github";
@@ -165,8 +165,10 @@ export async function POST(request: Request) {
     }
   }
 
-  // Start async processing
-  processVideoWithWebhook(video.id, webhookUrl).catch(console.error);
+  // Start async processing using after() to ensure it completes
+  after(async () => {
+    await processVideoWithWebhook(video.id, webhookUrl).catch(console.error);
+  });
 
   // Return immediately with video info
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://demoship.dev";

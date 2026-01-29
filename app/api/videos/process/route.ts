@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { fetchPRData } from "@/lib/github";
 import { analyzePR } from "@/lib/claude";
@@ -12,8 +12,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Video ID is required" }, { status: 400 });
   }
 
-  // Start processing in background
-  processVideo(videoId).catch(console.error);
+  // Start processing using after() to ensure it completes
+  after(async () => {
+    await processVideo(videoId).catch(console.error);
+  });
 
   return NextResponse.json({ success: true });
 }

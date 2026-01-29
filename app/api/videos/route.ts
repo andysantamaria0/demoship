@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { parsePRUrl, fetchPRData, fetchPRComments } from "@/lib/github";
 import { parseScreenshotsFromComments, extractPreviewUrlsFromComments } from "@/lib/screenshots";
@@ -137,8 +138,11 @@ export async function POST(request: Request) {
     }
   }
 
-  // Start async processing (don't await)
-  processVideo(video.id).catch(console.error);
+  // Start async processing using after() to ensure it completes
+  // even after the response is sent (prevents serverless termination issues)
+  after(async () => {
+    await processVideo(video.id).catch(console.error);
+  });
 
   return NextResponse.json(video);
 }
